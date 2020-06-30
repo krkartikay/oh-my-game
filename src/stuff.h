@@ -1,0 +1,5 @@
+class SomeStuff {
+    
+public:
+    SomeStuff();
+};
