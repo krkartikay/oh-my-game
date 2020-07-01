@@ -39,7 +39,8 @@ int main() {
 
                 case Event::MouseMoved:
                     if (pressed) {
-                        auto pos = window.mapPixelToCoords(Mouse::getPosition(window));
+                        auto pos =
+                            window.mapPixelToCoords(Mouse::getPosition(window));
                         marks.back().addPoint(pos);
                     }
                     break;
@@ -50,9 +51,8 @@ int main() {
         }
 
         window.clear(Color::White);
-        for (auto &mark : marks)
-        {
-            mark.draw(window);
+        for (auto& mark : marks) {
+            window.draw(mark);
         }
 
         window.display();

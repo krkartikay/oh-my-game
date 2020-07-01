@@ -8,6 +8,6 @@ void Mark::addPoint(Vector2f pos) {
     points.append(Vertex(pos, markColor));
 }
 
-void Mark::draw(RenderWindow& w) {
-    w.draw(points);
+void Mark::draw(RenderTarget& target, RenderStates states) const {
+    target.draw(points, states);
 }

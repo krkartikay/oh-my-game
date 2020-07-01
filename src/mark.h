@@ -7,12 +7,12 @@ using namespace std;
 #include <SFML/Graphics.hpp>
 using namespace sf;
 
-class Mark {
+class Mark : public Drawable {
     VertexArray points;
     Color markColor;
 
    public:
     Mark(Color c);
     void addPoint(Vector2f pos);
-    void draw(RenderWindow &w);
+    void draw(RenderTarget& target, RenderStates states) const override;
 };
