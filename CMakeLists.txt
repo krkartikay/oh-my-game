@@ -9,8 +9,8 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(SFML 2.5 COMPONENTS system window graphics network audio REQUIRED)
 
 # For debugging
-# set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g -fno-omit-frame-pointer -fsanitize=address,undefined")
-# set (CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fno-omit-frame-pointer -fsanitize=address,undefined")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g -fno-omit-frame-pointer -fsanitize=address,undefined")
+set (CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fno-omit-frame-pointer -fsanitize=address,undefined")
 
 # Include all files
 include_directories("${PROJECT_SOURCE_DIR}" "${PROJECT_SOURCE_DIR}/src")

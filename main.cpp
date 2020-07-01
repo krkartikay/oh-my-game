@@ -1,5 +1,6 @@
 #include <iostream>
 #include <map>
+#include <string>
 using namespace std;
 
 #include <SFML/Graphics.hpp>
@@ -10,37 +11,42 @@ using namespace sf;
 
 const int w = 500, h = 300;
 
+vector<Mark> marks;
+
+UdpSocket sock;
+IpAddress otherIp;
+unsigned short int otherPort;
+
+void sendMark(Mark m);
+Mark recvMark();
+
+void markRecvThread();
+
 int main() {
-    RenderWindow window(VideoMode(w, h), "Oh-My-Game");
+    sock.bind(Socket::AnyPort);
 
-    UdpSocket u;
+    cout << "Local Ip: " << IpAddress::getLocalAddress();
+    cout << "Local Port: " << sock.getLocalPort() << endl;
 
-    char c;
-    cout << "Server or client? [s/c] ";
-    cin >> c;
-    if (c == 's') {
-        u.bind(1337);
-        Packet p;
-        IpAddress ip;
-        unsigned short int port;
-        u.receive(p, ip, port);
-        string msg;
-        p >> msg;
-        cout << "Recieved msg: " << msg << endl;
-    } else {
-        string msg;
-        cout << "Enter msg: ";
-        cin >> msg;
-        Packet p;
-        p << msg;
-        u.send(p, "127.0.0.1", 1337);
-    }
+    cout << "Enter Other Ip: 127.0.0.1\n";
+    string s;
+    s = "127.0.0.1";  // getline(cin, s);
+    otherIp = IpAddress(s);
+
+    cout << "Enter other port: ";
+    cin >> otherPort;
 
     bool pressed;
-    vector<Mark> marks;
+
+    RenderWindow window(VideoMode(w, h), "Oh-My-Game");
+
+    Thread markReciever(markRecvThread);
+    markReciever.launch();
 
     while (window.isOpen()) {
         Event windowEvent;
+        Packet p;
+        string s = "Did sth";
         while (window.pollEvent(windowEvent)) {
             switch (windowEvent.type) {
                 case Event::Closed:
@@ -58,6 +64,7 @@ int main() {
 
                 case Event::MouseButtonReleased:
                     pressed = false;
+                    sendMark(marks.back());
                     break;
 
                 case Event::MouseMoved:
