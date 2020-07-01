@@ -1,5 +1,0 @@
-class SomeStuff {
-    
-public:
-    SomeStuff();
-};
