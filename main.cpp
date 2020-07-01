@@ -13,6 +13,29 @@ const int w = 500, h = 300;
 int main() {
     RenderWindow window(VideoMode(w, h), "Oh-My-Game");
 
+    UdpSocket u;
+
+    char c;
+    cout << "Server or client? [s/c] ";
+    cin >> c;
+    if (c == 's') {
+        u.bind(1337);
+        Packet p;
+        IpAddress ip;
+        unsigned short int port;
+        u.receive(p, ip, port);
+        string msg;
+        p >> msg;
+        cout << "Recieved msg: " << msg << endl;
+    } else {
+        string msg;
+        cout << "Enter msg: ";
+        cin >> msg;
+        Packet p;
+        p << msg;
+        u.send(p, "127.0.0.1", 1337);
+    }
+
     bool pressed;
     vector<Mark> marks;
 
