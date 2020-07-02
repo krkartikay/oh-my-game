@@ -24,7 +24,7 @@ Packet& operator>>(Packet& p, Mark& m) {
     int color;
     p >> color;
     m._points.setPrimitiveType(LineStrip);
-    m._markColor = Color(color);
+    m._markColor = Color::Black; // the mark other player draws should be black
     int vertexCount;
     p >> vertexCount;
     m._points.resize(vertexCount);
@@ -50,9 +50,13 @@ Packet& operator<<(Packet& p, Mark& m) {
 }
 
 void sendMark(Mark m) {
-    Packet p;
-    p << m;
-    while (sock.send(p, otherIp, otherPort) != Socket::Status::Done)
+    Packet p_code;
+    p_code << Int8('m'); // for Mark
+    while (sock.send(p_code, otherIp, otherPort) != Socket::Status::Done)
+        ;
+    Packet p_mark;
+    p_mark << m;
+    while (sock.send(p_mark, otherIp, otherPort) != Socket::Status::Done)
         ;
 }
 
@@ -65,9 +69,28 @@ Mark recvMark() {
     return m;
 }
 
-void markRecvThread() {
+void recvThread() {
     while (true) {
-        marks.push_back(recvMark());
-        cout << "recvd mark " << marks.size() << endl;
+        Packet p_code;
+        while (sock.receive(p_code, recvIp, recvPort) != Socket::Status::Done)
+            ;
+        Int8 code;
+        p_code >> code;
+        if (code == 'm') {
+            marks.push_back(recvMark());
+            cout << "recvd mark " << marks.size() << endl;
+        } else if (code == 'c') {
+            marks.clear();
+            cout << "recvd clr signal" << endl;
+        } else {
+            cout << "unknown signal " << int(code) << endl;
+        }
     }
+}
+
+void sendClear() {
+    Packet p;
+    p << Int8('c'); // for Clear
+    while (sock.send(p, otherIp, otherPort) != Socket::Status::Done)
+        ;
 }

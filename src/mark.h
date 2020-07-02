@@ -25,3 +25,9 @@ class Mark : public Drawable {
     friend Packet& operator>>(Packet& p, Mark& m);
     friend Packet& operator<<(Packet& p, Mark& m);
 };
+
+void sendMark(Mark m);
+void sendClear();
+Mark recvMark();
+
+void recvThread();

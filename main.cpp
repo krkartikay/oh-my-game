@@ -17,11 +17,6 @@ UdpSocket sock;
 IpAddress otherIp;
 unsigned short int otherPort;
 
-void sendMark(Mark m);
-Mark recvMark();
-
-void markRecvThread();
-
 int main() {
     sock.bind(Socket::AnyPort);
 
@@ -40,13 +35,12 @@ int main() {
 
     RenderWindow window(VideoMode(w, h), "Oh-My-Game");
 
-    Thread markReciever(markRecvThread);
+    Thread markReciever(recvThread);
     markReciever.launch();
 
     while (window.isOpen()) {
         Event windowEvent;
         Packet p;
-        string s = "Did sth";
         while (window.pollEvent(windowEvent)) {
             switch (windowEvent.type) {
                 case Event::Closed:
@@ -55,11 +49,7 @@ int main() {
 
                 case Event::MouseButtonPressed:
                     pressed = true;
-                    if (marks.size() % 2 == 1) {
-                        marks.emplace_back(Color::Black);
-                    } else {
-                        marks.emplace_back(Color::Red);
-                    }
+                    marks.emplace_back(Color::Red); // the one we're drawing should always be red
                     break;
 
                 case Event::MouseButtonReleased:
@@ -76,10 +66,11 @@ int main() {
                     break;
                 
                 case Event::KeyPressed:
-                    for (auto &m : marks){
-                        cout << "Mark with " << m.points().getVertexCount() << " points" << endl;
+                    if (windowEvent.key.code == Keyboard::C) {
+                        // press 'c' to clear screen
+                        sendClear();
+                        marks.clear();
                     }
-
                     break;
 
                 default:
