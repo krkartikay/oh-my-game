@@ -8,39 +8,66 @@ extern unsigned short int otherPort;
 IpAddress recvIp;
 unsigned short int recvPort;
 
-Mark::Mark(Color c) : markColor(c) {
-    points.setPrimitiveType(LineStrip);
+Mark::Mark(Color c) : _markColor(c) {
+    _points.setPrimitiveType(LineStrip);
 }
 
 void Mark::addPoint(Vector2f pos) {
-    points.append(Vertex(pos, markColor));
+    _points.append(Vertex(pos, _markColor));
 }
 
 void Mark::draw(RenderTarget& target, RenderStates states) const {
-    target.draw(points, states);
+    target.draw(_points, states);
+}
+
+Packet& operator>>(Packet& p, Mark& m) {
+    int color;
+    p >> color;
+    m._points.setPrimitiveType(LineStrip);
+    m._markColor = Color(color);
+    int vertexCount;
+    p >> vertexCount;
+    m._points.resize(vertexCount);
+    for (int i = 0; i < vertexCount; i++) {
+        p >> m._points[i].position.x;
+        p >> m._points[i].position.y;
+        cout << m._points[i].position.x << "\t" << m._points[i].position.y
+             << endl;
+        m._points[i].color = m._markColor;
+    }
+    return p;
+}
+
+Packet& operator<<(Packet& p, Mark& m) {
+    p << m._markColor.toInteger();
+    int vertexCount = m._points.getVertexCount();
+    p << vertexCount;
+    for (int i = 0; i < vertexCount; i++) {
+        p << m._points[i].position.x;
+        p << m._points[i].position.y;
+    }
+    return p;
 }
 
 void sendMark(Mark m) {
     Packet p;
-    static int i;
-    i++;
-    p << i;
-    cout << "trying to send to " << otherIp.toString() << ":" << otherPort << endl;
-    sock.send(p, otherIp, otherPort);
+    p << m;
+    while (sock.send(p, otherIp, otherPort) != Socket::Status::Done)
+        ;
 }
 
 Mark recvMark() {
     Packet p;
-    sock.receive(p, recvIp, recvPort);
-    int i;
-    p >> i;
-    cout << i << endl;
-    return Mark(Color::Red);
+    while (sock.receive(p, recvIp, recvPort) != Socket::Status::Done)
+        ;
+    Mark m;
+    p >> m;
+    return m;
 }
 
 void markRecvThread() {
     while (true) {
-        cout << "trying to recv" << endl;
-        recvMark();
+        marks.push_back(recvMark());
+        cout << "recvd mark " << marks.size() << endl;
     }
 }

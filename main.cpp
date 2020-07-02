@@ -25,7 +25,7 @@ void markRecvThread();
 int main() {
     sock.bind(Socket::AnyPort);
 
-    cout << "Local Ip: " << IpAddress::getLocalAddress();
+    cout << "Local Ip: " << IpAddress::getLocalAddress() << endl;
     cout << "Local Port: " << sock.getLocalPort() << endl;
 
     cout << "Enter Other Ip: 127.0.0.1\n";
@@ -73,6 +73,13 @@ int main() {
                             window.mapPixelToCoords(Mouse::getPosition(window));
                         marks.back().addPoint(pos);
                     }
+                    break;
+                
+                case Event::KeyPressed:
+                    for (auto &m : marks){
+                        cout << "Mark with " << m.points().getVertexCount() << " points" << endl;
+                    }
+
                     break;
 
                 default:
