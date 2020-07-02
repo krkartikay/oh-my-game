@@ -12,6 +12,7 @@ using namespace sf;
 const int w = 500, h = 300;
 
 vector<Mark> marks;
+Mutex marks_mutex;
 
 UdpSocket sock;
 IpAddress otherIp;
@@ -49,7 +50,12 @@ int main() {
 
                 case Event::MouseButtonPressed:
                     pressed = true;
-                    marks.emplace_back(Color::Red); // the one we're drawing should always be red
+                    {
+                        Lock l(marks_mutex);
+                        marks.emplace_back(
+                            Color::Red);  // the one we're drawing
+                                          // should always be red
+                    }
                     break;
 
                 case Event::MouseButtonReleased:
@@ -64,12 +70,15 @@ int main() {
                         marks.back().addPoint(pos);
                     }
                     break;
-                
+
                 case Event::KeyPressed:
                     if (windowEvent.key.code == Keyboard::C) {
                         // press 'c' to clear screen
-                        sendClear();
-                        marks.clear();
+                        {
+                            Lock l(marks_mutex);
+                            sendClear();
+                            marks.clear();
+                        }
                     }
                     break;
 

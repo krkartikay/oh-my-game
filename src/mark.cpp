@@ -1,10 +1,5 @@
 #include "mark.h"
 
-extern UdpSocket sock;
-extern vector<Mark> marks;
-extern IpAddress otherIp;
-extern unsigned short int otherPort;
-
 IpAddress recvIp;
 unsigned short int recvPort;
 
@@ -77,7 +72,11 @@ void recvThread() {
         Int8 code;
         p_code >> code;
         if (code == 'm') {
-            marks.push_back(recvMark());
+            Mark m = recvMark();
+            {
+                Lock l(marks_mutex);
+                marks.push_back(m);
+            }
             cout << "recvd mark " << marks.size() << endl;
         } else if (code == 'c') {
             marks.clear();

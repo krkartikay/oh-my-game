@@ -31,3 +31,9 @@ void sendClear();
 Mark recvMark();
 
 void recvThread();
+
+extern UdpSocket sock;
+extern vector<Mark> marks;
+extern IpAddress otherIp;
+extern unsigned short int otherPort;
+extern Mutex marks_mutex;
