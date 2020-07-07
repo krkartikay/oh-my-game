@@ -47,7 +47,7 @@ int main()
   scored.setCharacterSize(70);
   scored.setPosition(Vector2f(500.0f, 270.0f));
   timer.setCharacterSize(70);
-  timer.setPosition(Vector2f(600.0f, 350.0f));
+  timer.setPosition(Vector2f(500.0f, 350.0f));
   timer.setFillColor(Color::Black);
   scored.setFillColor(Color::Black);
 
@@ -76,13 +76,12 @@ int main()
       if (e.type == Event::Closed)
         app.close();
 
-      if (e.type == Event::MouseButtonPressed)
-        if (e.key.code == Mouse::Left)
-        {
-          if (!isSwap && !isMoving)
-            click++;
-          pos = Mouse::getPosition(app) - offset;
-        }
+      if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+      {
+        if (!isSwap && !isMoving)
+          click++;
+        pos = Mouse::getPosition(app) - offset;
+      }
     }
 
     int rem_time = total_time - c.getElapsedTime().asSeconds();
