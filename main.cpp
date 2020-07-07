@@ -1,10 +1,11 @@
 #include <bits/stdc++.h>
 using namespace std;
 #include <SFML/Graphics.hpp>
+#include <SFML/Network.hpp>
 #include <time.h>
 using namespace sf;
 
-int ts = 54; //tile size
+int ts = 54;  // tile size
 Vector2i offset(48, 24);
 
 struct piece
@@ -15,7 +16,9 @@ struct piece
         match = 0;
         alpha = 255;
     }
-} grid[10][10];
+};
+
+piece grid[10][10];
 
 void swap(piece p1, piece p2)
 {
@@ -47,7 +50,7 @@ int main()
     scored.setCharacterSize(70);
     scored.setPosition(Vector2f(500.0f, 270.0f));
     timer.setCharacterSize(70);
-    timer.setPosition(Vector2f(500.0f, 350.0f));
+    timer.setPosition(Vector2f(600.0f, 350.0f));
     timer.setFillColor(Color::Black);
     scored.setFillColor(Color::Black);
 
@@ -62,34 +65,80 @@ int main()
     }
 
     int highest = 0;
+    int opponent = 0;
     int x0, y0, x, y;
     int click = 0;
     Vector2i pos;
     bool isSwap = false, isMoving = false;
+
+    // Networking
+    IpAddress ip = IpAddress::getLocalAddress();
+    TcpSocket socket;
+    char connType;
+    cout << "(s) for server, (c) for client? ";
+    cin >> connType;
+    if (connType == 's') {
+        TcpListener listener;
+        listener.listen(2000);
+        listener.accept(socket);
+    } else if (connType == 'c') {
+        socket.connect(ip, 2000);
+    }
+    socket.setBlocking(false);
+
     Clock c;
     int total_time = 60;
-    while (app.isOpen())
-    {
+
+    while (app.isOpen()) {
         Event e;
-        while (app.pollEvent(e))
-        {
+        while (app.pollEvent(e)) {
             if (e.type == Event::Closed) {
                 app.close();
             }
 
-            if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-                if (!isSwap && !isMoving) {
-                    click++;
+            if (e.type == Event::MouseButtonPressed) {
+                if (e.mouseButton.button == Mouse::Left) {
+                    if (!isSwap && !isMoving) {
+                        click++;
+                    }
+                    pos = Mouse::getPosition(app) - offset;
                 }
-                pos = Mouse::getPosition(app) - offset;
             }
         }
 
         int rem_time = total_time - c.getElapsedTime().asSeconds();
         if (rem_time == 0) {
-            cout << highest << endl;
-            break;
+            // game over, show score and exit
+            Text gameOver;
+            Text winLose;
+            stringstream ss;
+            ss << "Game Over!!\nYour Score: " << highest << "\nOpponent Score: " << opponent;
+            gameOver.setColor(Color::Blue);
+            gameOver.setFont(font);
+            gameOver.setCharacterSize(120);
+            gameOver.setPosition(offset.x, offset.y);
+            gameOver.setOutlineThickness(2);
+            gameOver.setOutlineColor(Color::White);
+            gameOver.setString(ss.str());
+            winLose.setFont(font);
+            winLose.setCharacterSize(120);
+            winLose.setPosition(offset.x, offset.y + 200);
+            winLose.setOutlineThickness(2);
+            winLose.setOutlineColor(Color::White);
+            if (highest > opponent) {
+                winLose.setString("You WIN!!");
+                winLose.setColor(Color::Green);
+            } else {
+                winLose.setString("You LOSE!!");
+                winLose.setColor(Color::Red);
+            }
+            app.draw(gameOver);
+            app.draw(winLose);
+            app.display();
+            sleep(seconds(5));
+            app.close();
         }
+
         // mouse click
         if (click == 1) {
             x0 = pos.x / ts + 1;
@@ -107,7 +156,7 @@ int main()
             }
         }
 
-        //Match finding
+        // Match finding
         for (int i = 1; i <= 8; i++) {
             for (int j = 1; j <= 8; j++) {
                 if (grid[i][j].kind == grid[i + 1][j].kind) {
@@ -128,7 +177,7 @@ int main()
             }
         }
 
-        //Moving animation
+        // Moving animation
         isMoving = false;
         for (int i = 1; i <= 8; i++) {
             for (int j = 1; j <= 8; j++) {
@@ -150,7 +199,7 @@ int main()
             }
         }
 
-        //Deleting amimation
+        // Deleting amimation
         if (!isMoving) {
             for (int i = 1; i <= 8; i++) {
                 for (int j = 1; j <= 8; j++) {
@@ -164,7 +213,7 @@ int main()
             }
         }
 
-        //Get score
+        // Get score
         int score = 0;
         for (int i = 1; i <= 8; i++) {
             for (int j = 1; j <= 8; j++) {
@@ -172,7 +221,7 @@ int main()
             }
         }
 
-        //Second swap if no match
+        // Second swap if no match
         if (isSwap && !isMoving) {
             {
                 if (!score) {
@@ -187,7 +236,7 @@ int main()
             }
         }
 
-        //Update grid
+        // Update grid
         if (!isMoving) {
             for (int i = 8; i > 0; i--) {
                 for (int j = 1; j <= 8; j++) {
@@ -214,7 +263,14 @@ int main()
             }
         }
 
-        // Draw
+        // Networking -- send and recv score
+        Packet p;
+        p << highest;
+        socket.send(p);
+        socket.receive(p);
+        p >> opponent;
+
+        //////draw///////
         app.draw(background);
 
         for (int i = 1; i <= 8; i++) {
@@ -229,8 +285,9 @@ int main()
         }
         stringstream ss, st;
         highest = max(score + highest, highest);
-        ss << "Score : " << highest;
-        st << "Time : " << 60 - rem_time;
+        ss << "Score : " << highest << "\n";
+        ss << "Opp.: " << opponent;
+        st << "Time : " << rem_time;
         scored.setString(ss.str());
         timer.setString(st.str());
         app.draw(scored);
