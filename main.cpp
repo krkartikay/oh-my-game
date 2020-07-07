@@ -36,8 +36,17 @@ int main()
 
     Sprite background(t1), gems(t2);
 
-   
-
+    Text scored, timer;
+    Font font;
+    font.loadFromFile("game_over.ttf");
+    scored.setFont(font);
+    timer.setFont(font);
+    scored.setCharacterSize(70);
+    scored.setPosition(Vector2f(500.0f, 270.0f));
+    timer.setCharacterSize(70);
+    timer.setPosition(Vector2f(600.0f, 350.0f));
+    timer.setFillColor(Color::Black);
+    scored.setFillColor(Color::Black);
 
     for (int i=1;i<=8;i++)
      for (int j=1;j<=8;j++)
@@ -161,7 +170,7 @@ int main()
      }
 
 
-    //////draw///////
+    // Draw
     app.draw(background);
 
     for (int i=1;i<=8;i++)
@@ -174,7 +183,15 @@ int main()
         gems.move(offset.x-ts,offset.y-ts);
         app.draw(gems);
       }
-     app.display();
+    stringstream ss, st;
+    highest = max(score + highest, highest);
+    ss << "Score : " << highest;
+    st << "Time : " << 60 - rem_time;
+    scored.setString(ss.str());
+    timer.setString(st.str());
+    app.draw(scored);
+    app.draw(timer);
+    app.display();
     }
     return 0;
 }
